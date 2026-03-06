@@ -1,1 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Soil Savior</title>
+<style>
+body{
+  font-family: Arial, sans-serif;
+  margin:0;
+  text-align:center;
+  background:#0f1a12;
+  color:white;
+}
 
+.screen{display:none; padding:20px;}
+.active{display:block;}
+
+h1{letter-spacing:3px;}
+
+button{
+  padding:10px 20px;
+  margin:5px;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+#startScreen{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+#game{
+  max-width:600px;
+  margin:auto;
+}
+
+.progress{
+  height:25px;
+  width:100%;
+  background:#333;
+  margin:10px 0;
+  border-radius:5px;
+}
+
+.bar{
+  height:100%;
+  width:50%;
+  border-radius:5px;
+}
+
+#hungerBar{background:red;}
+#soilBar{background:#7a4a22;}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin:20px 0;
+}
+
+.field{
+  height:120px;
+  background:#5c3b1e;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:30px;
+  cursor:pointer;
+  transition: background 0.5s;
+}
+
+.toolbar{
+  margin-top:10px;
+}
+
+.selected{
+  outline:3px solid yellow;
+}
+</style>
+</head>
+
+<body>
+
+<!-- START SCREEN -->
+<div id="startScreen" class="screen active">
+<h1>SOIL SAVIOR</h1>
+<p>Balance food production and soil health to help your village outgrow hunger.</p>
+<button onclick="startGame()">Start Game</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game" class="screen">
+
+<h3>Village Hunger</h3>
+<div class="progress"><div id="hungerBar" class="bar"></div></div>
+
+<h3>Soil Health</h3>
+<div class="progress"><div id="soilBar" class="bar"></div></div>
+
+<div class="grid">
+<div class="field" data-index="0"></div>
+<div class="field" data-index="1"></div>
+<div class="field" data-index="2"></div>
+<div class="field" data-index="3"></div>
+</div>
+
+<div class="toolbar">
+<button onclick="selectTool('corn')" id="cornBtn">Plant Corn 🌽</button>
+<button onclick="selectTool('clover')" id="cloverBtn">Plant Clover 🍀</button>
+<button onclick="selectTool('rest')" id="restBtn">Rest</button>
+</div>
+
+</div>
+
+<!-- END SCREEN -->
+<div id="endScreen" class="screen">
+<h1 id="resultTitle"></h1>
+<button onclick="location.reload()">Play Again</button>
+</div>
+
+<script>
+
+let hunger = 50
+let soil = 100
+let fields = ["","","",""]
+let tool = "corn"
+let timer = 120
+let gameLoop
+
+function startGame(){
+document.getElementById("startScreen").classList.remove("active")
+document.getElementById("game").classList.add("active")
+gameLoop = setInterval(tick,5000)
+}
+
+function selectTool(t){
+tool = t
+}
+
+document.querySelectorAll(".field").forEach(field=>{
+field.addEventListener("click",()=>{
+let i = field.dataset.index
+
+if(tool==="corn"){
+fields[i]="corn"
+field.textContent="🌽"
+}
+
+if(tool==="clover"){
+fields[i]="clover"
+field.textContent="🍀"
+}
+
+if(tool==="rest"){
+fields[i]=""
+field.textContent=""
+}
+})
+})
+
+function tick(){
+
+hunger += 5
+
+fields.forEach(f=>{
+if(f==="corn"){
+hunger -= 10
+soil -= 15
+}
+if(f==="clover"){
+soil += 20
+}
+})
+
+hunger = Math.max(0,Math.min(100,hunger))
+soil = Math.max(0,Math.min(100,soil))
+
+updateBars()
+updateFields()
+
+timer -= 5
+
+if(hunger>=100) endGame("Famine")
+if(soil<=0) endGame("Dust Bowl")
+if(timer<=0) endGame("Systems Master")
+
+}
+
+function updateBars(){
+document.getElementById("hungerBar").style.width = hunger+"%"
+document.getElementById("soilBar").style.width = soil+"%"
+}
+
+function updateFields(){
+let color = `rgb(${150 - soil}, ${90 - soil/2}, ${40 - soil/2})`
+
+document.querySelectorAll(".field").forEach(f=>{
+f.style.background = color
+})
+}
+
+function endGame(title){
+clearInterval(gameLoop)
+
+document.getElementById("game").classList.remove("active")
+document.getElementById("endScreen").classList.add("active")
+document.getElementById("resultTitle").textContent = title
+}
+
+updateBars()
+
+</script>
+</body>
+</html>
